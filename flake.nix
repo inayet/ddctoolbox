@@ -42,12 +42,13 @@
           nativeBuildInputs = with pkgs.qt6; [
             qmake
             wrapQtAppsHook
-            utf8cpp
+            
           ];
           buildInputs = with pkgs; [
             kdePackages.qtbase
             kdePackages.qttools      # For Qt Designer, tools
-            kdePackages.qtsvg        # If the app uses SVG icons
+            kdePackages.qtsvg    
+            kdePackages.qt6ct    # If the app uses SVG icons
             libGL
             utf8cpp
           ];

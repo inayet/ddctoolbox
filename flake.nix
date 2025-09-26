@@ -42,6 +42,7 @@
           nativeBuildInputs = with pkgs.qt6; [
             qmake
             wrapQtAppsHook
+            utf8cpp
           ];
           buildInputs = with pkgs; [
             kdePackages.qtbase
@@ -75,7 +76,7 @@
         packages.default = ddctoolbox;
         apps.default = {
           type = "app";
-          program = "${ddctoolbox}/bin/ddctoolbox";
+          program = "${self.packages.default.ddctoolbox}/bin/ddctoolbox";
         };
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [

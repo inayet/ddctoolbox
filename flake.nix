@@ -58,7 +58,6 @@
             homepage = "https://github.com/ThePBone/DDCToolbox";
             license = licenses.gpl3Plus;
             maintainers = [
-              "inayet"
             ];
             platforms = platforms.linux;
           };

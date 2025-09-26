@@ -22,7 +22,6 @@
           rev = "master"; # Consider pinning a commit for reproducibility
           sha256 = "sha256-00mg0hry3ysdgjrah9gsmvhlsvldrsnxnjjrbx52al30s8nkg3rf";
         };
-
         ddctoolbox = pkgs.stdenv.mkDerivation {
           pname = "ddctoolbox";
           version = "unstable";
@@ -33,7 +32,6 @@
             qmake
             wrapQtAppsHook
           ];
-
           buildInputs = with pkgs; [
             qt5.qtbase
             libGL
@@ -43,7 +41,6 @@
             mkdir -p $out/bin
             cp ./DDCToolbox $out/bin/ddctoolbox
 
-            # Optional: install desktop entry and icon
             mkdir -p $out/share/applications
             cat > $out/share/applications/ddc_toolbox.desktop <<EOF
             [Desktop Entry]
@@ -62,7 +59,16 @@
             mkdir -p $out/share/pixmaps
             cp img/icon.png $out/share/pixmaps/ddc-toolbox.png
           '';
+
+          meta = with pkgs.lib; {
+            description = "Create and edit DDCs on Linux";
+            homepage = "https://github.com/ThePBone/DDCToolbox";
+            license = licenses.gpl3Plus;
+            maintainers = [ maintainers.inayet ];
+            platforms = platforms.linux;
+          };
         };
+
       in
       {
         packages.default = ddctoolbox;

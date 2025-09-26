@@ -66,7 +66,7 @@
             description = "Create and edit DDCs on Linux";
             homepage = "https://github.com/ThePBone/DDCToolbox";
             license = licenses.gpl3Plus;
-            maintainers = [ ];
+            maintainers = [ "timschneeb" "inayet" ];
             platforms = platforms.linux;
           };
         };

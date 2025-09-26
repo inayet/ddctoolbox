@@ -38,7 +38,7 @@
           ];
 
           installPhase = ''
-            
+
             mkdir -p $out/bin
             find . -type f -name DDCToolbox -exec cp {} $out/bin/ddctoolbox \;
                         

@@ -31,7 +31,7 @@
           owner = "timschneeb";
           repo = "DDCToolbox";
           rev = "master";
-          sha256 = pkgs.lib.fakeHash;
+          sha256 = "sha256-NqhSMfIAnpJcJ8qTSV61tbiCKoI+INfoknTl5/4g7h4="; # pkgs.lib.fakeHash;
         };
         ddctoolbox = pkgs.stdenv.mkDerivation {
           pname = "ddctoolbox";

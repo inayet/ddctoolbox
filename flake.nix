@@ -38,9 +38,10 @@
           ];
 
           installPhase = ''
+            
             mkdir -p $out/bin
-            cp ./DDCToolbox $out/bin/ddctoolbox
-
+            find . -type f -name DDCToolbox -exec cp {} $out/bin/ddctoolbox \;
+                        
             mkdir -p $out/share/applications
             cat > $out/share/applications/ddc_toolbox.desktop <<EOF
             [Desktop Entry]

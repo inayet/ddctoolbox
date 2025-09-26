@@ -80,7 +80,7 @@
         packages.default = ddctoolbox;
         apps.default = {
           type = "app";
-          program = "${self.packages.ddctoolbox}/bin/ddctoolbox";
+          program = "${ddctoolbox}/bin/ddctoolbox";
         };
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [

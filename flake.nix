@@ -44,11 +44,12 @@
             wrapQtAppsHook
           ];
           buildInputs = with pkgs; [
-            qt6.qtbase
-            qt6.qt5compat
-            qt6.qttools      # For Qt Designer, linguist tools
-            qt6.qtsvg        # If the app uses SVG icons
+            dePackages.qtbase
+            kdePackages.qtbase
+            kdePackages.qttools      # For Qt Designer, tools
+            kdePackages.qtsvg        # If the app uses SVG icons
             libGL
+            utf8cpp
           ];
           installPhase = ''
             mkdir -p $out/bin

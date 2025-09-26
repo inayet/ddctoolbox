@@ -79,7 +79,9 @@
 
         apps.default = {
           type = "app";
-          program = "${ddctoolbox}/bin/ddctoolbox";
+          program = "${pkgs.writeShellScript "ddctoolbox-wrapper" ''
+            exec ${ddctoolbox}/bin/ddctoolbox "$@"
+          ''}";
         };
 
         devShells.default = pkgs.mkShell {

@@ -44,7 +44,6 @@
             wrapQtAppsHook
           ];
           buildInputs = with pkgs; [
-            dePackages.qtbase
             kdePackages.qtbase
             kdePackages.qttools      # For Qt Designer, tools
             kdePackages.qtsvg        # If the app uses SVG icons

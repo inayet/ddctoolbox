@@ -12,10 +12,26 @@
     flake-utils.lib.eachDefaultSystem (
       system: let
         pkgs = import nixpkgs {inherit system;};
-        ddctoolbox-src = pkgs.fetchgit {
-          url = "https://github.com/ThePBone/DDCToolbox.git";
-          rev = "master"; # Consider pinning a commit for reproducibility
-          sha256 = "sha256-00mg0hry3ysdgjrah9gsmvhlsvldrsnxnjjrbx52al30s8nkg3rf";
+
+        desktopFile = pkgs.writeText "ddc_toolbox.desktop" ''
+          [Desktop Entry]
+          Name=DDC Toolbox
+          GenericName=DDC Editor
+          Comment=Create and edit DDCs on Linux
+          Keywords=editor
+          Categories=AudioVideo;Audio;Editor
+          Exec=ddctoolbox
+          Icon=ddc-toolbox
+          StartupNotify=false
+          Terminal=false
+          Type=Application
+        '';
+
+        ddctoolbox-src = pkgs.fetchFromGitHub {
+          owner = "timschneeb";
+          repo = "DDCToolbox";
+          rev = "master";
+          sha256 = pkgs.lib.fakeHash;
         };
         ddctoolbox = pkgs.stdenv.mkDerivation {
           pname = "ddctoolbox";
@@ -34,19 +50,7 @@
             find . -type f -name DDCToolbox -exec cp {} $out/bin/ddctoolbox \;
 
             mkdir -p $out/share/applications
-            cat > $out/share/applications/ddc_toolbox.desktop <<EOF
-            [Desktop Entry]
-            Name=DDC Toolbox
-            GenericName=DDC Editor
-            Comment=Create and edit DDCs on Linux
-            Keywords=editor
-            Categories=AudioVideo;Audio;Editor
-            Exec=ddctoolbox
-            Icon=ddc-toolbox
-            StartupNotify=false
-            Terminal=false
-            Type=Application
-            EOF
+            cp ${desktopFile} $out/share/applications/ddc_toolbox.desktop
 
             mkdir -p $out/share/pixmaps
             if [ -f img/icon.png ]; then
@@ -57,8 +61,7 @@
             description = "Create and edit DDCs on Linux";
             homepage = "https://github.com/ThePBone/DDCToolbox";
             license = licenses.gpl3Plus;
-            maintainers = [
-            ];
+            maintainers = [];
             platforms = platforms.linux;
           };
         };

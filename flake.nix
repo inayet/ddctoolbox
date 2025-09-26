@@ -4,15 +4,17 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
-  outputs = {
-    self,
-    nixpkgs,
-    flake-utils,
-  }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
     flake-utils.lib.eachDefaultSystem (
-      system: let
-        pkgs = import nixpkgs {inherit system;};
-
+      system:
+      let
+        pkgs = import nixpkgs { inherit system; };
+        
         desktopFile = pkgs.writeText "ddc_toolbox.desktop" ''
           [Desktop Entry]
           Name=DDC Toolbox
@@ -26,32 +28,35 @@
           Terminal=false
           Type=Application
         '';
-
+        
         ddctoolbox-src = pkgs.fetchFromGitHub {
           owner = "timschneeb";
           repo = "DDCToolbox";
           rev = "master";
-          sha256 = "sha256-NqhSMfIAnpJcJ8qTSV61tbiCKoI+INfoknTl5/4g7h4="; # pkgs.lib.fakeHash;
+          sha256 = pkgs.lib.fakeHash;
         };
         ddctoolbox = pkgs.stdenv.mkDerivation {
           pname = "ddctoolbox";
           version = "unstable";
           src = ddctoolbox-src;
-          nativeBuildInputs = with pkgs.qt5; [
+          nativeBuildInputs = with pkgs.qt6; [
             qmake
             wrapQtAppsHook
           ];
           buildInputs = with pkgs; [
-            qt5.qtbase
+            qt6.qtbase
+            qt6.qt5compat
+            qt6.qttools      # For Qt Designer, linguist tools
+            qt6.qtsvg        # If the app uses SVG icons
             libGL
           ];
           installPhase = ''
             mkdir -p $out/bin
             find . -type f -name DDCToolbox -exec cp {} $out/bin/ddctoolbox \;
-
+                        
             mkdir -p $out/share/applications
             cp ${desktopFile} $out/share/applications/ddc_toolbox.desktop
-
+            
             mkdir -p $out/share/pixmaps
             if [ -f img/icon.png ]; then
               cp img/icon.png $out/share/pixmaps/ddc-toolbox.png
@@ -61,11 +66,12 @@
             description = "Create and edit DDCs on Linux";
             homepage = "https://github.com/ThePBone/DDCToolbox";
             license = licenses.gpl3Plus;
-            maintainers = [];
+            maintainers = [ ];
             platforms = platforms.linux;
           };
         };
-      in {
+      in
+      {
         packages.default = ddctoolbox;
         apps.default = {
           type = "app";
@@ -73,8 +79,8 @@
         };
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            qt5.qmake
-            qt5.qtbase
+            qt6.qmake
+            qt6.qtbase
             libGL
           ];
         };

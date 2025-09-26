@@ -47,6 +47,7 @@
           buildInputs = with pkgs; [
             kdePackages.qtbase
             kdePackages.qttools # For Qt Designer, tools
+            kdePackages.qt5compat
             kdePackages.qtsvg
             kdePackages.qt6ct # If the app uses SVG icons
             libGL

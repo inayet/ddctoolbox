@@ -14,7 +14,7 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
-        
+
         desktopFile = pkgs.writeText "ddc_toolbox.desktop" ''
           [Desktop Entry]
           Name=DDC Toolbox
@@ -28,12 +28,12 @@
           Terminal=false
           Type=Application
         '';
-        
+
         ddctoolbox-src = pkgs.fetchFromGitHub {
           owner = "timschneeb";
           repo = "DDCToolbox";
           rev = "master";
-          sha256 = "sha256-NqhSMfIAnpJcJ8qTSV61tbiCKoI+INfoknTl5/4g7h4="; #pkgs.lib.fakeHash;
+          sha256 = "sha256-NqhSMfIAnpJcJ8qTSV61tbiCKoI+INfoknTl5/4g7h4="; # pkgs.lib.fakeHash;
         };
         ddctoolbox = pkgs.stdenv.mkDerivation {
           pname = "ddctoolbox";
@@ -42,13 +42,13 @@
           nativeBuildInputs = with pkgs.qt6; [
             qmake
             wrapQtAppsHook
-            
+
           ];
           buildInputs = with pkgs; [
             kdePackages.qtbase
-            kdePackages.qttools      # For Qt Designer, tools
-            kdePackages.qtsvg    
-            kdePackages.qt6ct    # If the app uses SVG icons
+            kdePackages.qttools # For Qt Designer, tools
+            kdePackages.qtsvg
+            kdePackages.qt6ct # If the app uses SVG icons
             libGL
             utf8cpp
           ];
@@ -58,7 +58,7 @@
                         
             mkdir -p $out/share/applications
             cp ${desktopFile} $out/share/applications/ddc_toolbox.desktop
-            
+
             mkdir -p $out/share/pixmaps
             if [ -f img/icon.png ]; then
               cp img/icon.png $out/share/pixmaps/ddc-toolbox.png
@@ -68,7 +68,10 @@
             description = "Create and edit DDCs on Linux";
             homepage = "https://github.com/ThePBone/DDCToolbox";
             license = licenses.gpl3Plus;
-            maintainers = [ "timschneeb" "inayet" ];
+            maintainers = [
+              "timschneeb"
+              "inayet"
+            ];
             platforms = platforms.linux;
           };
         };
@@ -77,13 +80,16 @@
         packages.default = ddctoolbox;
         apps.default = {
           type = "app";
-          program = "${self.packages.default.ddctoolbox}/bin/ddctoolbox";
+          program = "${self.packages.ddctoolbox}/bin/ddctoolbox";
         };
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            qt6.qmake
-            qt6.qtbase
+            kdePackages.qtbase
+            kdePackages.qttools # For Qt Designer, tools
+            kdePackages.qtsvg
+            kdePackages.qt6ct # If the app uses SVG icons
             libGL
+            utf8cpp
           ];
         };
       }

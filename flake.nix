@@ -78,7 +78,8 @@
 
         apps.default = flake-utils.lib.mkApp {
           drv = ddctoolbox;
-          program = "ddctoolbox";
+          name = "ddctoolbox";
+          exePath = "bin/ddctoolbox";
         };
 
         devShells.default = pkgs.mkShell {

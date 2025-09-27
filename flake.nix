@@ -4,16 +4,13 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
-  outputs =
-    {
-      self,
-      nixpkgs,
-      flake-utils,
-    }:
+  outputs = inputs @ {
+    nixpkgs,
+    flake-utils,
+  }:
     flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = import nixpkgs { inherit system; };
+      system: let
+        pkgs = import nixpkgs {inherit system;};
         desktopFile = pkgs.writeText "ddc_toolbox.desktop" ''
           [Desktop Entry]
           Name=DDC Toolbox
@@ -44,25 +41,21 @@
 
           # Fix locale issues during build
           env = {
-            LANG = "C.UTF-8";
-            LC_ALL = "C.UTF-8";
+            LANG = "UTF-8";
+            LC_ALL = "UTF-8";
           };
-
           nativeBuildInputs = with pkgs; [
             qt5.qmake
             qt5.wrapQtAppsHook
             pkg-config
           ];
-
+          #TODO use new versions of qt5 ie qt6
           buildInputs = with pkgs; [
             qt5.qtbase
             qt5.qttools
             qt5.qtsvg
             qt5.qtnetworkauth
-            libGL
-            utf8cpp
-            alsa-lib
-            pulseaudio
+            pipewire
           ];
 
           # Patch the source code to fix compilation issues
@@ -85,8 +78,6 @@
 
           configurePhase = ''
             runHook preConfigure
-
-            export QT_SELECT=5
 
             # Run qmake with proper flags for Qt5
             qmake PREFIX=$out \
@@ -159,25 +150,27 @@
           '';
 
           # Enable debug symbols for troubleshooting if needed
-          separateDebugInfo = false; # Disable to reduce build time
+          separateDebugInfo = true; # Disable to reduce build time
 
           meta = with pkgs.lib; {
             description = "Create and edit DDCs (Digital Dynamic Range Compression) files on Linux";
             longDescription = ''
-              DDCToolbox is a tool for creating and editing DDC (Digital Dynamic Range Compression) 
+              DDCToolbox is a tool for creating and editing DDC (Digital Dynamic Range Compression)
               files on Linux. It provides a graphical interface for managing audio processing parameters.
 
               This build uses Qt5 for compatibility with the original codebase.
             '';
             homepage = "https://github.com/timschneeb/DDCToolbox";
             license = licenses.gpl3Plus;
-            maintainers = with maintainers; [ ];
-            platforms = platforms.linux;
+            maintainers = with maintainers; [
+              "timschneeb"
+              "inayet"
+            ];
+            platforms = with platforms.linux; ["x86_64-linux"];
             mainProgram = "ddctoolbox";
           };
         };
-      in
-      {
+      in {
         packages = {
           default = ddctoolbox;
           ddctoolbox = ddctoolbox;
@@ -185,11 +178,11 @@
 
         apps.default = {
           type = "app";
-          program = "${ddctoolbox}/bin/ddctoolbox";
+          program = "${self.ddctoolbox}/bin/ddctoolbox";
         };
 
         devShells.default = pkgs.mkShell {
-          inputsFrom = [ ddctoolbox ];
+          inputsFrom = [ddctoolbox];
           buildInputs = with pkgs; [
             # Development tools
             gdb
@@ -203,13 +196,14 @@
             utf8cpp
             pkg-config
           ];
+          package = ["${self.packages.default}"];
 
           shellHook = ''
-            echo "DDCToolbox development environment (Qt5)"
-            echo "Qt version: $(qmake -version)"
-            export QT_SELECT=5
-            export LANG=C.UTF-8
-            export LC_ALL=C.UTF-8
+            #echo "DDCToolbox development environment (Qt5)"
+            #echo "Qt version: $(qmake -version)"
+            #export QT_SELECT=5
+            #export LANG=C.UTF-8
+            #export LC_ALL=C.UTF-8
           '';
         };
       }

@@ -42,11 +42,11 @@
           version = "2024.09.26.1";
           src = ddctoolbox-src;
 
-          # Fix locale issues during build
-          env = {
-            LANG = "UTF-8";
-            LC_ALL = "UTF-8";
-          };
+          # # Fix locale issues during build
+          # env = {
+          #   LANG = "UTF-8";
+          #   LC_ALL = "UTF-8";
+          # };
           nativeBuildInputs = with pkgs; [
             qt5.qmake
             qt5.wrapQtAppsHook

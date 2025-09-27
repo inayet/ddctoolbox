@@ -172,7 +172,7 @@
             # Development tools
           ];
           shellHook = ''
-            # echo Welcome to ${pkgs.git}/bin/git branch --show-current" git branch DDCToolbox development environment
+            echo Welcome to ${pkgs.git}/bin/git branch --show-current" git branch DDCToolbox development environment
           '';
         };
       }

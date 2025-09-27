@@ -5,10 +5,10 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
   outputs =
-    {
-      self,
+    inputs@{
       nixpkgs,
       flake-utils,
+      ...
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -36,13 +36,13 @@
         };
         ddctoolbox = pkgs.stdenv.mkDerivation {
           pname = "ddctoolbox";
-          version = "unstable-2024-09-26";
+          version = "2024-09-26";
           src = ddctoolbox-src;
 
           # Fix locale issues during build
           env = {
-            LANG = "C.UTF-8";
-            LC_ALL = "C.UTF-8";
+            LANG = "UTF-8";
+            LC_ALL = "UTF-8";
           };
 
           nativeBuildInputs = with pkgs; [
@@ -58,7 +58,7 @@
             qt6.qt5compat
             qt6.qtsvg
             libGL
-            utf8cpp
+            #utf8cpp
             # Additional dependencies that might be needed
             pipewire
           ];
@@ -163,9 +163,8 @@
           inputsFrom = [ ddctoolbox ];
           buildInputs = with pkgs; [
             # Development tools
-
           ];
-
+          packages = [ ddctoolbox ];
           shellHook = ''
             # echo "DDCToolbox development environment"
             # echo "Qt version: $(qmake -version)"

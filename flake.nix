@@ -48,23 +48,26 @@
           nativeBuildInputs = [
             pkgs.qt6.wrapQtAppsHook
             pkgs.pkg-configUpstream
+
+          ];
+
+          buildInputs = [
+
+            pkgs.qt6.qtbase
+            pkgs.qt6.qttools
+            pkgs.qt6.qt5compat
             pkgs.qt6.qtdeclarative
             pkgs.qt6.qttools
             pkgs.qt6.qtshadertools
             pkgs.qt6.full
             pkgs.qt6.qmake
-          ];
-
-          buildInputs = with pkgs; [
-
-            qt6.qtbase
-            qt6.qttools
-            qt6.qt5compat
-            #qt6.qtsvg
-            #libGL
+            pkgs.qt6.qtsvg
+            pkgs.libGL
+            pkgs.qt6.full
             #utf8cpp
             # Additional dependencies that might be needed
-            pipewire
+            pkgs.pipewire
+            pkgs.qt6.qtbase
           ];
 
           # Configure phase to set up proper qmake flags

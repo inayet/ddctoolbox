@@ -1,6 +1,5 @@
 # import 'justfile-dir/service.just'
 # import? 'justfile-dir/guickget-check.just'
-
 #mod? quickget-check
 # Justfile - Enhanced with Multi-Level Interactive Commands
 # This Justfile integrates ripgrep (rg), fzf, zoxide, and aspell (optional)
@@ -528,8 +527,6 @@ kinit:
 
 # Alias for quick access
 
-k := "kinit"
-
 [group("Shell Aliases")]
 code-ins:
     @~/Documents/vscode-insider/usr/share/code-insiders/bin/code-insiders
@@ -573,7 +570,6 @@ u-9:
 # [group("Shell Aliases")]
 # u-8:
 #     nvd --color=always --version-highlight=bold history -p /nix/var/nix/profiles/system --sort=semver -s --list-oldest
-
 # [group("Shell Aliases")]
 # u-7:
 #     nvd --color=always --version-highlight=bold history -p /nix/var/nix/profiles/system --sort=semver --list-oldest

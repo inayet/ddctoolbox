@@ -173,11 +173,7 @@
             # Development tools
           ];
           shellHook = ''
-            # echo "DDCToolbox development environment"
-            # echo "Qt version: $(qmake -version)"
-            # export QT_SELECT=6
-            # export LANG=C.UTF-8
-            # export LC_ALL=C.UTF-8
+            # echo "Welcome to "${pkgs.git}/bin/git branch --show-current" git branch DDCToolbox development environment"
           '';
         };
       }

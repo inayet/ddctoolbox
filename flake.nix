@@ -113,13 +113,22 @@
             fi
 
             # 3) Quick replacement pass for application attribute name mismatches (best-effort)
-            #    Replace common Qt::AA_* references with a more explicit ApplicationAttribute qualified form
-            #    so code that references attributes in a newer Qt layout compiles more easily.
-            echo "Performing quick attribute name replacements (Qt::AA_ -> Qt::ApplicationAttribute::AA_)"
+            #    We do two things here:
+            #     - Guard the specific AppRuntime attribute call that is missing / moved in Qt6 so
+            #       the build stops on that first error and we can apply a precise patch.
+            #     - Apply remaining macro name adjustments for other AA_* identifiers.
+            echo "Performing quick attribute name replacements and targeted AppRuntime guard (Qt::AA_ -> Qt::ApplicationAttribute::AA_)"
             # Only alter source files under src and 3rdparty code where present
+            # 1) Targeted guard for AppRuntime attribute (avoid compile failure on Qt6)
+            if [ -f src/AppRuntime.cpp ]; then
+              echo " - guarding AppRuntime attribute use in src/AppRuntime.cpp"
+              # Replace full occurrences of the problematic attribute invocation with a Qt-version-guarded form.
+              # Use perl to safely replace the specific token occurrence and keep formatting intact.
+              perl -0777 -pe 's/AppRuntime::setAttribute\(Qt::ApplicationAttribute::AA_DisableWindowContextHelpButton\);/#if QT_VERSION < QT_VERSION_CHECK(6,0,0)\n    AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);\n#else\n    \/\/ Omitted on Qt6 (attribute not present in the same scope)\n#endif/gs' -i src/AppRuntime.cpp || true
+            fi
+            # 2) General replacements for other AA_ macros (best-effort)
             for f in $(grep -R --line-number -E "Qt::AA_[A-Za-z0-9_]+" src 2>/dev/null | cut -d: -f1 | sort -u); do
               echo " - patching $f"
-              sed -i 's/Qt::AA_DisableWindowContextHelpButton/Qt::ApplicationAttribute::AA_DisableWindowContextHelpButton/g' "$f" || true
               sed -i 's/Qt::AA_EnableHighDpiScaling/Qt::ApplicationAttribute::AA_EnableHighDpiScaling/g' "$f" || true
               sed -i 's/Qt::AA_/Qt::ApplicationAttribute::AA_/g' "$f" || true
             done || true

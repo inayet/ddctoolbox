@@ -49,7 +49,9 @@
             pkgs.qt6.wrapQtAppsHook
             pkgs.pkg-configUpstream
             pkgs.utf8cpp
+            pkgs.qt6.full
             pkgs.qt6.qmake
+            pkgs.kdePackages.qtsvg
             pkgs.gnumake
 
           ];
@@ -130,7 +132,7 @@
               "inayet"
             ];
             platforms = with platforms.linux; [ "x86_64-linux" ];
-            mainProgram = "ddctoolbox";
+            mainProgram = "ddctoolbox-qt6";
           };
         };
       in
@@ -149,6 +151,7 @@
           #inputsFrom = [ ddctoolbox ];
           buildInputs = with pkgs; [
             # Development tools
+            ddctoolbox-qt6
           ];
           shellHook = ''
             echo Welcome to "${pkgs.git}/bin/git branch --show-current" git branch DDCToolbox development environment

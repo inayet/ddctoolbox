@@ -114,7 +114,7 @@
 
             # # Install desktop file
             # mkdir -p $out/share/applications
-            # cp ${desktopFile} $out/share/applications/ddc_toolbox.desktop
+            #cp $${desktopFile} $out/share/applications/ddc_toolbox.desktop
 
             # Install icon if available
             mkdir -p $out/share/pixmaps

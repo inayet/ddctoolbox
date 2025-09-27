@@ -83,8 +83,8 @@
             # Set up Qt environment (prefer Qt6)
             export QT_SELECT=6
 
-            # Invoke qmake and point it at the upstream project's .pro file at repository root.
-            qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 DDCToolbox.pro
+            # Invoke qmake and point it at the project's src qmake file when building from the `src/` source root.
+            qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 src/src.pro
 
             runHook postConfigure
           '';

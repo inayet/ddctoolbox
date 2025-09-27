@@ -80,59 +80,44 @@
           # We rely on the canonical qmake / wrapQtAppsHook combination to prepare the build
           # environment for GUI wrapping and qmake invocation.
 
-          # Patch sources by applying committed .patch files located under the vendored upstream/ tree.
-          # We apply patches from `upstream/patches/qt6-patches` so they match the upstream path layout
-          # (patch files reference paths like a/src/..., and we run patch from the repository root).
-          # Patch sources: run our scripted Qt6 fixes first (if present), then apply committed .patch files
-          # from the repository's patches/qt6-patches directory. This ensures the helper script can make
-          # best-effort mechanical edits, and the explicit patch files are applied afterwards reproducibly.
+          # Patch sources by applying committed .patch files located in the flake's patches directory.
+          # We apply patches from ${toString ./patches/qt6-patches} (expanded to a store path at evaluation time)
+          # so they will be available during the build even when the source is fetched.
+          # We also optionally run a helper script if included in the flake.
           patchPhase = ''
             runHook prePatch
-            echo "Running Qt6 helper script (if present) and applying .patch files from patches/qt6-patches..."
-
-            # 1) Run the repository helper script (idempotent, best-effort).
-            SOURCE_ROOT="$PWD"
-            if [ -x "$SOURCE_ROOT/patches/qt6-fix.sh" ]; then
-              echo "Executing helper: $SOURCE_ROOT/patches/qt6-fix.sh"
-              (cd "$SOURCE_ROOT" && ./patches/qt6-fix.sh) || true
+            echo "Applying helper script and .patch files from ${toString ./patches/qt6-patches}..."
+ 
+            # 1) Optionally run the helper script packaged in the flake (idempotent, best-effort).
+            if [ -x "${toString ./patches/qt6-fix.sh}" ]; then
+              echo "Executing helper: ${toString ./patches/qt6-fix.sh}"
+              sh "${toString ./patches/qt6-fix.sh}" || true
             else
-              echo "No helper script at $SOURCE_ROOT/patches/qt6-fix.sh (skipping)."
+              echo "No helper script at ${toString ./patches/qt6-fix.sh} (skipping)."
             fi
-
-            # 2) Apply canonical patch files from the repo's patches/qt6-patches directory
-            PATCH_DIR="$SOURCE_ROOT/patches/qt6-patches"
+ 
+            # 2) Apply canonical patch files from the flake's patches directory (store path).
+            PATCH_DIR=${toString ./patches/qt6-patches}
             if [ -d "$PATCH_DIR" ]; then
               for p in "$PATCH_DIR"/*.patch; do
                 [ -f "$p" ] || continue
-                echo "Applying patch: $p"
-                # Apply in repository root (strip one component to match a/... b/... diffs)
-                (cd "$SOURCE_ROOT" && patch -p1 < "$p") || true
+                echo "Applying patch from flake store: $p"
+                patch -p1 < "$p" || true
               done
             else
               echo "No patch directory found at $PATCH_DIR; skipping patch application."
             fi
-
-            # 3) Quick replacement pass for application attribute name mismatches (best-effort)
-            #    We do two things here:
-            #     - Guard the specific AppRuntime attribute call that is missing / moved in Qt6 so
-            #       the build stops on that first error and we can apply a precise patch.
-            #     - Apply remaining macro name adjustments for other AA_* identifiers.
-            echo "Performing quick attribute name replacements and targeted AppRuntime guard (Qt::AA_ -> Qt::ApplicationAttribute::AA_)"
-            # Only alter source files under src and 3rdparty code where present
-            # 1) Targeted guard for AppRuntime attribute (avoid compile failure on Qt6)
+ 
+            # 3) Targeted quick fixes: guard known Qt6-moved attributes in source (best-effort).
+            #    This small pass is just to handle the first blocking errors and is intentionally
+            #    conservative. More comprehensive source changes are applied via the explicit patches above.
             if [ -f src/AppRuntime.cpp ]; then
-              echo " - guarding AppRuntime attribute use in src/AppRuntime.cpp"
-              # Replace full occurrences of the problematic attribute invocation with a Qt-version-guarded form.
-              # Use perl to safely replace the specific token occurrence and keep formatting intact.
-              perl -0777 -pe 's/AppRuntime::setAttribute\(Qt::ApplicationAttribute::AA_DisableWindowContextHelpButton\);/#if QT_VERSION < QT_VERSION_CHECK(6,0,0)\n    AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);\n#else\n    \/\/ Omitted on Qt6 (attribute not present in the same scope)\n#endif/gs' -i src/AppRuntime.cpp || true
+              echo " - ensuring AppRuntime attribute use is guarded for Qt6 in src/AppRuntime.cpp"
+              # Replace only the exact problematic invocation with a guarded variant (Qt5-only).
+              sed -n '1,200p' src/AppRuntime.cpp | grep -q "AA_DisableWindowContextHelpButton" && \
+                perl -0777 -pe 's/AppRuntime::setAttribute\(Qt::ApplicationAttribute::AA_DisableWindowContextHelpButton\);/#if QT_VERSION < QT_VERSION_CHECK(6,0,0)\n    AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);\n#else\n    \/\/ Omitted on Qt6 (attribute not present in the same scope)\n#endif/gs' -i src/AppRuntime.cpp || true
             fi
-            # 2) General replacements for other AA_ macros (best-effort)
-            for f in $(grep -R --line-number -E "Qt::AA_[A-Za-z0-9_]+" src 2>/dev/null | cut -d: -f1 | sort -u); do
-              echo " - patching $f"
-              sed -i 's/Qt::AA_EnableHighDpiScaling/Qt::ApplicationAttribute::AA_EnableHighDpiScaling/g' "$f" || true
-              sed -i 's/Qt::AA_/Qt::ApplicationAttribute::AA_/g' "$f" || true
-            done || true
-
+ 
             runHook postPatch
           '';
 

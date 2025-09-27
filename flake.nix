@@ -28,12 +28,7 @@
         #   Type=Application
         #   MimeType=application/x-ddc;
         # '';
-        ddctoolbox-src = pkgs.fetchFromGitHub {
-          owner = "timschneeb";
-          repo = "DDCToolbox";
-          rev = "master";
-          sha256 = "sha256-NqhSMfIAnpJcJ8qTSV61tbiCKoI+INfoknTl5/4g7h4=";
-        };
+        ddctoolbox-src = ./.;
         ddctoolbox-qt6 = pkgs.stdenv.mkDerivation {
           pname = "ddctoolbox-qt6";
           version = "2024-09-26.2";
@@ -44,6 +39,11 @@
             LANG = "C.UTF-8";
             LC_ALL = "C.UTF-8";
           };
+          # During iterative Qt6 porting we avoid the automatic wrap/unwrapping checks so
+          # the configure phase can call qmake explicitly against the repo working tree.
+          # This ensures the build uses the repository `src` (with our patches) and
+          # prevents the qmake pre-hook from failing due to missing helper binaries.
+          dontWrapQtApps = true;
 
 
  

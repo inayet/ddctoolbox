@@ -32,15 +32,7 @@
           };
 
           # Use the qt5 namespace so the qmake/wrap hooks are wired correctly by nixpkgs.
-          nativeBuildInputs = with pkgs.qt5; [
-            qmake
-            wrapQtAppsHook
-          ] ++ with pkgs; [
-            pkg-config
-            make
-            automake
-            autoconf
-          ];
+          nativeBuildInputs = (with pkgs.qt5; [ qmake wrapQtAppsHook ]) ++ (with pkgs; [ pkg-config make automake autoconf ]);
 
           buildInputs = with pkgs; [
             qt5.qtbase
@@ -61,7 +53,8 @@
 
           buildPhase = ''
             runHook preBuild
-            make -j${toString (if builtins.getEnv "NIX_BUILD_CORES" != "" then builtins.getEnv "NIX_BUILD_CORES" else "1")}
+
+            make -j$NIX_BUILD_CORES
             runHook postBuild
           '';
 

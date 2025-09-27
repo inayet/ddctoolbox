@@ -50,8 +50,9 @@
             pkgs.pkg-configUpstream
             pkgs.qt6.qtdeclarative
             pkgs.qt6.qttools
-            pkgs.qt6.make
+            pkgs.qt6.qtshadertools
             pkgs.qt6.full
+            pkgs.qt6.qmake
           ];
 
           buildInputs = with pkgs; [

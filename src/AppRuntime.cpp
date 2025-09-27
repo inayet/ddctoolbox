@@ -22,15 +22,9 @@ AppRuntime::AppRuntime(int &argc, char **argv) : QApplication(argc, argv) {
 
   AppRuntime::setStyle(new ProxyStyle("Fusion"));
   AppRuntime::setPalette(AppRuntime::style()->standardPalette());
-/* Only set this Qt5-specific attribute when building against Qt5.
-   Qt6 reorganized application attribute enums and this symbol may not be
-   present in the same scope; avoid compilation failures by guarding it. */
-/* Only set this Qt5-specific attribute when building against Qt5.
-   Qt6 reorganized application attributes and this symbol may not be
-   present in the same scope; guard to avoid compilation failures. */
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);
-#endif
+  /* Context-help button attribute is intentionally omitted for Qt6 builds.
+     The Qt5-only attribute has been removed to keep the code clean and
+     Qt6-compatible. */
 
 #ifdef __APPLE__
   this->setStyleSheet("* {font-size: 13px;}");

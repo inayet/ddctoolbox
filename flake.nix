@@ -84,7 +84,7 @@
             export QT_SELECT=6
 
             # Invoke qmake and point it at the project's src qmake file when building from the `src/` source root.
-            qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 src/src.pro
+            qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 src.pro
 
             runHook postConfigure
           '';

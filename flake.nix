@@ -105,27 +105,6 @@
             # Install the binary
             mkdir -p $out/bin
 
-            # Ensure we have an executable
-            if [ ! -f "$out/bin/ddctoolbox" ]; then
-              echo "Error: DDCToolbox executable not found!"
-              find . -name "*DDC*" -type f
-              exit 1
-            fi
-
-            # # Install desktop file
-            # mkdir -p $out/share/applications
-            #cp $${desktopFile} $out/share/applications/ddc_toolbox.desktop
-
-            # Install icon if available
-            mkdir -p $out/share/pixmaps
-            if [ -f img/icon.png ]; then
-              cp img/icon.png $out/share/pixmaps/ddc-toolbox.png
-            elif [ -f src/img/icon.png ]; then
-              cp src/img/icon.png $out/share/pixmaps/ddc-toolbox.png
-            elif [ -f assets/icon.png ]; then
-              cp assets/icon.png $out/share/pixmaps/ddc-toolbox.png
-            fi
-
             # Install any additional resources
             if [ -d resources ]; then
               mkdir -p $out/share/ddctoolbox

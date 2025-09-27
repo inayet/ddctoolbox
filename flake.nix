@@ -32,7 +32,7 @@
           };
 
           # Use the qt5 namespace so the qmake/wrap hooks are wired correctly by nixpkgs.
-          nativeBuildInputs = (with pkgs.qt5; [ qmake wrapQtAppsHook ]) ++ (with pkgs; [ pkg-config make automake autoconf ]);
+          nativeBuildInputs = (with pkgs.qt5; [ qmake wrapQtAppsHook ]) ++ (with pkgs; [ pkg-config gnumake automake autoconf ]);
 
           buildInputs = with pkgs; [
             qt5.qtbase

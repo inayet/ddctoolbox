@@ -160,11 +160,10 @@
         };
 
         devShells.default = pkgs.mkShell {
-          inputsFrom = [ ddctoolbox ];
+          #inputsFrom = [ ddctoolbox ];
           buildInputs = with pkgs; [
             # Development tools
           ];
-          packages = [ ddctoolbox ];
           shellHook = ''
             # echo "DDCToolbox development environment"
             # echo "Qt version: $(qmake -version)"

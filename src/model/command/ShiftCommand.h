@@ -3,75 +3,76 @@
 
 #include "model/FilterModel.h"
 
-#include <QUndoCommand>
 #include <QDebug>
+#include <QUndoCommand>
+#include <algorithm>
 
-class ShiftCommand : public QUndoCommand
-{
+class ShiftCommand : public QUndoCommand {
 public:
-    ShiftCommand(FilterModel* model, QModelIndexList indices, int shiftAmount, QUndoCommand *parent = 0)
-        : QUndoCommand(parent), model(model), shiftAmount(shiftAmount)
-    {
-        cache.reserve(indices.count());
-        for (int i = 0; i < indices.count(); i++)
-        {
-            cache.append(model->getFilter(indices.at(i).row())->GetId());
-        }
-
-        setText(createCommandString());
+  ShiftCommand(FilterModel *model, QModelIndexList indices, int shiftAmount,
+               QUndoCommand *parent = 0)
+      : QUndoCommand(parent), model(model), shiftAmount(shiftAmount) {
+    cache.reserve(indices.count());
+    for (int i = 0; i < indices.count(); i++) {
+      cache.append(model->getFilter(indices.at(i).row())->GetId());
     }
 
-    void undo()
-    {
-        QModelIndexList indices;
-        for (int i = 0; i < cache.count(); i++)
-        {
-            auto ref = model->getFilterById(cache.at(i));
-            if(ref == nullptr){
-                qWarning() << "ShiftCommand::undo: getFilterById(" << cache.at(i)
-                           << ") returned nullptr";
-                continue;
-            }
+    setText(createCommandString());
+  }
 
-            auto filter = DeflatedBiquad(ref);
-            filter.freq = filter.freq - shiftAmount;
-            indices.append(model->replaceById(cache.at(i), filter, true));
-        }
-        qSort(indices.begin(), indices.end(), qGreater<QModelIndex>());
+  void undo() {
+    QModelIndexList indices;
+    for (int i = 0; i < cache.count(); i++) {
+      auto ref = model->getFilterById(cache.at(i));
+      if (ref == nullptr) {
+        qWarning() << "ShiftCommand::undo: getFilterById(" << cache.at(i)
+                   << ") returned nullptr";
+        continue;
+      }
 
-        emit model->dataChanged(indices.first(), indices.last().sibling(indices.last().row(), 3));
+      auto filter = DeflatedBiquad(ref);
+      filter.freq = filter.freq - shiftAmount;
+      indices.append(model->replaceById(cache.at(i), filter, true));
     }
-    void redo()
-    {
-        QModelIndexList indices;
-        for (int i = 0; i < cache.count(); i++)
-        {
-            auto ref = model->getFilterById(cache.at(i));
-            if(ref == nullptr){
-                qWarning() << "ShiftCommand::undo: getFilterById(" << cache.at(i)
-                           << ") returned nullptr";
-                continue;
-            }
+    std::sort(indices.begin(), indices.end(),
+              [](const QModelIndex &a, const QModelIndex &b) {
+                return a.row() > b.row();
+              });
 
-            auto filter = DeflatedBiquad(ref);
-            filter.freq = filter.freq + shiftAmount;
-            indices.append(model->replaceById(cache.at(i), filter, true));
-        }
-        qSort(indices.begin(), indices.end(), qGreater<QModelIndex>());
+    emit model->dataChanged(indices.first(),
+                            indices.last().sibling(indices.last().row(), 3));
+  }
+  void redo() {
+    QModelIndexList indices;
+    for (int i = 0; i < cache.count(); i++) {
+      auto ref = model->getFilterById(cache.at(i));
+      if (ref == nullptr) {
+        qWarning() << "ShiftCommand::undo: getFilterById(" << cache.at(i)
+                   << ") returned nullptr";
+        continue;
+      }
 
-        emit model->dataChanged(indices.first(), indices.last().sibling(indices.last().row(), 3));
+      auto filter = DeflatedBiquad(ref);
+      filter.freq = filter.freq + shiftAmount;
+      indices.append(model->replaceById(cache.at(i), filter, true));
     }
+    std::sort(indices.begin(), indices.end(),
+              [](const QModelIndex &a, const QModelIndex &b) {
+                return a.row() > b.row();
+              });
 
-    QString createCommandString(){
-        return QObject::tr("\"Shift frequencies of selection\"");
-    }
+    emit model->dataChanged(indices.first(),
+                            indices.last().sibling(indices.last().row(), 3));
+  }
 
+  QString createCommandString() {
+    return QObject::tr("\"Shift frequencies of selection\"");
+  }
 
 private:
-    FilterModel* model;
-    QVector<uint> cache;
-    int shiftAmount;
+  FilterModel *model;
+  QVector<uint> cache;
+  int shiftAmount;
 };
-
 
 #endif // SHIFTCOMMAND_H

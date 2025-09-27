@@ -39,41 +39,25 @@
           version = "2024-09-26.2";
           src = ddctoolbox-src;
 
-          # Fix locale issues during build
+          # Fix locale issues during build (use C.UTF-8 which Qt expects in many build environments)
           env = {
-            LANG = "UTF-8";
-            LC_ALL = "UTF-8";
+            LANG = "C.UTF-8";
+            LC_ALL = "C.UTF-8";
           };
 
-          nativeBuildInputs = [
-            pkgs.qt6.wrapQtAppsHook
-            pkgs.pkg-configUpstream
-            pkgs.utf8cpp
-            pkgs.qt6.full
-            pkgs.qt6.qmake
-            pkgs.kdePackages.qtsvg
-            pkgs.gnumake
+          # Use the qt6 namespace so the qmake/wrap hooks are wired correctly by nixpkgs,
+          # and keep common native build tools.
+          nativeBuildInputs = (with pkgs.qt6; [ qmake wrapQtAppsHook ]) ++ (with pkgs; [ pkg-config utf8cpp gnumake ]);
 
-          ];
-
-          buildInputs = [
-
-            pkgs.qt6.qtbase
-            pkgs.qt6.qttools
-            pkgs.qt6.qt5compat
-            pkgs.qt6.qtdeclarative
-            pkgs.qt6.qttools
-            pkgs.qt6.qtshadertools
-            pkgs.qt6.full
-            pkgs.qt6.qmake
-            pkgs.gnumake
-            pkgs.qt6.qtsvg
-            pkgs.libGL
-            pkgs.qt6.full
-            #utf8cpp
-            # Additional dependencies that might be needed
-            pkgs.pipewire
-            pkgs.qt6.qtbase
+          # Cleaned buildInputs: avoid duplicates and unnecessary repeats
+          buildInputs = with pkgs; [
+            qt6.qtbase
+            qt6.qttools
+            qt6.qtsvg
+            qt6.qtdeclarative
+            qt6.qtshadertools
+            libGL
+            pipewire
           ];
 
           # Patch sources for Qt6 compatibility and configure qmake

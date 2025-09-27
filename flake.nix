@@ -54,15 +54,9 @@
             runHook postQmake
           '';
  
-          # Use a robust set of Qt6 tools and wrapping hooks so qmake and runtime wrapping are provided.
-          nativeBuildInputs = [
-            pkgs.qt6.full
-            pkgs.qt6.qmake
-            pkgs.pkg-config
-            pkgs.utf8cpp
-            pkgs.gnumake
-            pkgs.kdePackages.qtsvg
-          ];
+          # Use the canonical qt6 qmake and wrap hook from nixpkgs and keep standard native tools.
+          # This ensures qmake and the wrapHook are provided by the qt6 namespace (recommended pattern).
+          nativeBuildInputs = (with pkgs.qt6; [ qmake wrapQtAppsHook ]) ++ [ pkgs.pkg-config pkgs.utf8cpp pkgs.gnumake pkgs.kdePackages.qtsvg ];
 
           # Include explicit qmake in buildInputs so we can invoke it deterministically in configurePhase,
           # and include the Qt6 runtimes/modules needed.
@@ -84,54 +78,23 @@
             runHook postQmake
           '';
 
-          # Patch sources for Qt6 compatibility and configure qmake
+          # Patch sources by applying committed .patch files in the flake's patches/qt6-patches directory.
+          # This is cleaner and reproducible: patch files are stored in the flake and applied reliably.
           patchPhase = ''
             runHook prePatch
-            echo "Applying Qt6 compatibility patches..."
+            echo "Applying .patch files from flake (patches/qt6-patches)..."
 
-            # 1) Replace QWheelEvent::delta()/pos() usage with Qt6 equivalents
-            #    - delta() -> angleDelta().y()
-            #    - pos() -> position()
-            # Best-effort: operate on all .cpp/.h files under src/
-            for f in $(grep -R --line-number -E "event->delta\\(|event->pos\\(" src 2>/dev/null | cut -d: -f1 | sort -u); do
-              [ -f "$f" ] || continue
-              sed -i 's/event->delta()/event->angleDelta().y()/g' "$f" || true
-              sed -i 's/event->pos()/event->position()/g' "$f" || true
-              sed -i 's/event->pos().x()/event->position().x()/g' "$f" || true
-              sed -i 's/event->pos().y()/event->position().y()/g' "$f" || true
-            done
-
-            # 2) Replace QMap::unite usages (unavailable on some Qt6 builds) with manual insert loop
-            if [ -f src/plot/QCustomPlot.cpp ]; then
-              sed -i "s/mTicks.unite(ticks);/for (auto it = ticks.constBegin(); it != ticks.constEnd(); ++it) mTicks.insert(it.key(), it.value());/g" src/plot/QCustomPlot.cpp || true
+            PATCH_DIR=${toString ./patches/qt6-patches}
+            if [ -d "$PATCH_DIR" ]; then
+              for p in "$PATCH_DIR"/*.patch; do
+                [ -f "$p" ] || continue
+                echo "Applying patch: $p"
+                patch -p1 < "$p" || true
+              done
+            else
+              echo "No patch directory found at $PATCH_DIR; skipping patch application."
             fi
 
-            # 3) Replace QSet::toList() -> QSet::values() / values() usage
-            for f in $(grep -R --line-number -E "\\.toList\\(\\)" src 2>/dev/null | cut -d: -f1 | sort -u); do
-              sed -i 's/\\.toList()/\\.values()/g' "$f" || true
-            done
-
-            # 4) QWeakPointer::data() -> toStrongRef() usage for safety
-            #    Replace common pattern "mPaintBuffer.data()->" with a safe toStrongRef() guard where possible.
-            if [ -f src/plot/QCustomPlot.cpp ]; then
-              sed -n '1,99999p' src/plot/QCustomPlot.cpp > /tmp/qcp.$$ || true
-              # Replace occurrences of "->mPaintBuffer.data()->" with a guarded form (best-effort)
-              sed -i "s/\\([A-Za-z0-9_]*->mPaintBuffer\\)\\.data()\\(->[A-Za-z0-9_]*(\\)/\\1.toStrongRef()\\2/g" /tmp/qcp.$$ || true
-              mv /tmp/qcp.$$ src/plot/QCustomPlot.cpp || true
-            fi
-
-            # 5) QPainter render hint change: HighQualityAntialiasing -> Antialiasing
-            for f in $(grep -R --line-number -E "HighQualityAntialiasing" src 2>/dev/null | cut -d: -f1 | sort -u); do
-              sed -i 's/HighQualityAntialiasing/Antialiasing/g' "$f" || true
-            done
-
-            # 6) QImage::mirrored -> prefer flipped if necessary (leave mirrored for compatibility)
-            for f in $(grep -R --line-number -E "mirrored\\(" src 2>/dev/null | cut -d: -f1 | sort -u); do
-              # leave as-is for now; mirrored is deprecated but usually present; keep for manual follow-up if needed
-              true
-            done
-
-            # 7) Other API adaptations might be required and will show up in subsequent build errors.
             runHook postPatch
           '';
 

@@ -75,20 +75,21 @@
           # We rely on the canonical qmake / wrapQtAppsHook combination to prepare the build
           # environment for GUI wrapping and qmake invocation.
 
-          # Patch sources by applying committed .patch files in the flake's patches/qt6-patches directory.
-          # This is cleaner and reproducible: patch files are stored in the flake and applied reliably.
+          # Patch sources by applying committed .patch files located under the vendored upstream/ tree.
+          # We apply patches from `upstream/patches/qt6-patches` so they match the upstream path layout
+          # (patch files reference paths like a/src/..., and we run patch from the repository root).
           patchPhase = ''
             runHook prePatch
-            echo "Applying .patch files from flake (patches/qt6-patches)..."
+            echo "Applying .patch files from upstream/patches/qt6-patches..."
 
-            # Prefer patches kept in the source tree at ./patches/qt6-patches so they are
-            # applied reproducibly from the checked-out source. Use $PWD which points at the
-            # source root during patchPhase.
-            PATCH_DIR="$PWD/patches/qt6-patches"
+            # Use the upstream/ path inside the source tree so patch hunks reference src/ paths correctly.
+            PATCH_DIR="$PWD/upstream/patches/qt6-patches"
             if [ -d "$PATCH_DIR" ]; then
               for p in "$PATCH_DIR"/*.patch; do
                 [ -f "$p" ] || continue
                 echo "Applying patch: $p"
+                # Run patch from the repository root (which is $PWD during patchPhase).
+                # Use -p1 so diff headers like a/src/... become src/...
                 patch -p1 < "$p" || true
               done
             else
@@ -98,16 +99,16 @@
             runHook postPatch
           '';
 
-          # Configure phase to set up proper qmake flags (use explicit qmake from pkgs.qt6)
+          # Configure phase to set up proper qmake flags and point qmake at the upstream project file.
           configurePhase = ''
             runHook preConfigure
 
             # Set up Qt environment (prefer Qt6)
             export QT_SELECT=6
 
-            # Invoke qmake via the qmake wrapper provided by the build environment so the
-            # wrapHook can set up environment correctly (canonical usage).
-            qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 DDCToolbox.pro
+            # Invoke qmake and explicitly point it at the upstream project's .pro file so
+            # the build operates on the vendored upstream sources present in upstream/.
+            qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 upstream/DDCToolbox.pro
 
             runHook postConfigure
           '';

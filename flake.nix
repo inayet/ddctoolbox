@@ -126,7 +126,7 @@
             ];
 
             shellHook = ''
-              echo "Entered DDCToolbox development shell (Qt5). Locale: ${pkgs.lib.getEnv "LANG" or "en_US.UTF-8"}"
+              echo "Entered DDCToolbox development shell (Qt5). Locale: $LANG"
             '';
           };
         };

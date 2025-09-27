@@ -103,10 +103,16 @@
             #    conservative. More comprehensive source changes are applied via the explicit patches above.
             if [ -f src/AppRuntime.cpp ]; then
               echo " - guarding AppRuntime attribute use in src/AppRuntime.cpp (sed replacement)"
-              # If the file contains the exact problematic call, replace that single line
-              # with a Qt-version-guarded block so Qt6 builds do not fail on this symbol.
-              if grep -q "AppRuntime::setAttribute(Qt::ApplicationAttribute::AA_DisableWindowContextHelpButton);" src/AppRuntime.cpp 2>/dev/null; then
-                sed -i 's|AppRuntime::setAttribute(Qt::ApplicationAttribute::AA_DisableWindowContextHelpButton);|#if QT_VERSION < QT_VERSION_CHECK(6,0,0)\n    AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);\n#else\n    // Omitted on Qt6 (attribute not present in the same scope)\n#endif|' src/AppRuntime.cpp || true
+              # If the file contains the problematic call, insert a Qt-version-guarded block.
+              # Be idempotent: only perform the replacement if the guard is not already present.
+              if ! grep -q "#if QT_VERSION < QT_VERSION_CHECK(6,0,0)" src/AppRuntime.cpp 2>/dev/null; then
+                if grep -q "AppRuntime::setAttribute(Qt::ApplicationAttribute::AA_DisableWindowContextHelpButton);" src/AppRuntime.cpp 2>/dev/null; then
+                  sed -i 's|AppRuntime::setAttribute(Qt::ApplicationAttribute::AA_DisableWindowContextHelpButton);|#if QT_VERSION < QT_VERSION_CHECK(6,0,0)\n    AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);\n#else\n    // Omitted on Qt6 (attribute not present in the same scope)\n#endif|' src/AppRuntime.cpp || true
+                fi
+                # Also handle the alternate Qt5 token variant if present
+                if grep -q "AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);" src/AppRuntime.cpp 2>/dev/null; then
+                  sed -i 's|AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);|#if QT_VERSION < QT_VERSION_CHECK(6,0,0)\n    AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);\n#else\n    // Omitted on Qt6 (attribute not present in the same scope)\n#endif|' src/AppRuntime.cpp || true
+                fi
               fi
             fi
  

@@ -104,8 +104,24 @@
             if [ -f src/AppRuntime.cpp ]; then
               echo " - ensuring AppRuntime attribute use is guarded for Qt6 in src/AppRuntime.cpp"
               # Replace only the exact problematic invocation with a guarded variant (Qt5-only).
-              sed -n '1,200p' src/AppRuntime.cpp | grep -q "AA_DisableWindowContextHelpButton" && \
-                perl -0777 -pe 's/AppRuntime::setAttribute\(Qt::ApplicationAttribute::AA_DisableWindowContextHelpButton\);/#if QT_VERSION < QT_VERSION_CHECK(6,0,0)\n    AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);\n#else\n    \/\/ Omitted on Qt6 (attribute not present in the same scope)\n#endif/gs' -i src/AppRuntime.cpp || true
+              # Use a POSIX-safe awk transformation instead of perl so builds don't require perl.
+              if grep -q "AA_DisableWindowContextHelpButton" src/AppRuntime.cpp 2>/dev/null; then
+                awk '
+                  BEGIN { guarded = 0 }
+                  {
+                    if (!guarded && $0 ~ /AppRuntime::setAttribute\(Qt::ApplicationAttribute::AA_DisableWindowContextHelpButton\);/) {
+                      print "#if QT_VERSION < QT_VERSION_CHECK(6,0,0)"
+                      print "    AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);"
+                      print "#else"
+                      print "    // Omitted on Qt6 (attribute not present in the same scope)"
+                      print "#endif"
+                      guarded = 1
+                    } else {
+                      print $0
+                    }
+                  }
+                ' src/AppRuntime.cpp > /tmp/appruntime.$$ && mv /tmp/appruntime.$$ src/AppRuntime.cpp || true
+              fi
             fi
  
             runHook postPatch

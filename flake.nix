@@ -28,7 +28,7 @@
           Type=Application
           MimeType=application/x-ddc;
         '';
-        ddctoolbox-src = ./upstream;
+        ddctoolbox-src = ./.;
         ddctoolbox-qt6 = pkgs.stdenv.mkDerivation {
           pname = "ddctoolbox-qt6";
           version = "2024-09-26.2";

@@ -35,8 +35,8 @@
           sha256 = "sha256-NqhSMfIAnpJcJ8qTSV61tbiCKoI+INfoknTl5/4g7h4=";
         };
         ddctoolbox = pkgs.stdenv.mkDerivation {
-          pname = "ddctoolbox";
-          version = "2024-09-26";
+          pname = "ddctoolbox-qt6";
+          version = "2024-09-26.2";
           src = ddctoolbox-src;
 
           # Fix locale issues during build
@@ -64,6 +64,7 @@
             pkgs.qt6.qtshadertools
             pkgs.qt6.full
             pkgs.qt6.qmake
+            pkgs.gnumake
             pkgs.qt6.qtsvg
             pkgs.libGL
             pkgs.qt6.full
@@ -171,7 +172,7 @@
             # Development tools
           ];
           shellHook = ''
-            # echo "Welcome to "${pkgs.git}/bin/git branch --show-current" git branch DDCToolbox development environment"
+            # echo Welcome to ${pkgs.git}/bin/git branch --show-current" git branch DDCToolbox development environment
           '';
         };
       }

@@ -44,12 +44,20 @@
             LANG = "C.UTF-8";
             LC_ALL = "C.UTF-8";
           };
+
+          # Avoid automatic Qt wrapping checks during iterative port; allow configurePhase to call qmake explicitly.
+          dontWrapQtApps = true;
+
+          # Make qmakePrePhase a no-op so the configurePhase's explicit qmake invocation runs deterministically.
+          qmakePrePhase = ''
+            runHook preQmake
+            runHook postQmake
+          '';
  
           # Use a robust set of Qt6 tools and wrapping hooks so qmake and runtime wrapping are provided.
           nativeBuildInputs = [
             pkgs.qt6.full
             pkgs.qt6.qmake
-            pkgs.qt6.wrapQtAppsHook
             pkgs.pkg-config
             pkgs.utf8cpp
             pkgs.gnumake
@@ -68,6 +76,13 @@
             libGL
             pipewire
           ];
+
+          # No-op qmakePrePhase so the qmake hook won't run automatically; we call qmake explicitly in configurePhase.
+          qmakePrePhase = ''
+            runHook preQmake
+            # Intentionally no-op: prevent automatic qmake hook behavior so configurePhase can call qmake deterministically
+            runHook postQmake
+          '';
 
           # Patch sources for Qt6 compatibility and configure qmake
           patchPhase = ''

@@ -28,12 +28,7 @@
           Type=Application
           MimeType=application/x-ddc;
         '';
-        ddctoolbox-src = pkgs.fetchFromGitHub {
-          owner = "timschneeb";
-          repo = "DDCToolbox";
-          rev = "master";
-          sha256 = "sha256-NqhSMfIAnpJcJ8qTSV61tbiCKoI+INfoknTl5/4g7h4=";
-        };
+        ddctoolbox-src = ./src;
         ddctoolbox-qt6 = pkgs.stdenv.mkDerivation {
           pname = "ddctoolbox-qt6";
           version = "2024-09-26.2";
@@ -76,46 +71,8 @@
           # We also optionally run a helper script if included in the flake.
           patchPhase = ''
             runHook prePatch
-            echo "Applying helper script and .patch files from ${toString ./patches/qt6-patches}..."
- 
-            # 1) Optionally run the helper script packaged in the flake (idempotent, best-effort).
-            if [ -x "${toString ./patches/qt6-fix.sh}" ]; then
-              echo "Executing helper: ${toString ./patches/qt6-fix.sh}"
-              sh "${toString ./patches/qt6-fix.sh}" || true
-            else
-              echo "No helper script at ${toString ./patches/qt6-fix.sh} (skipping)."
-            fi
- 
-            # 2) Apply canonical patch files from the flake's patches directory (store path).
-            PATCH_DIR=${toString ./patches/qt6-patches}
-            if [ -d "$PATCH_DIR" ]; then
-              for p in "$PATCH_DIR"/*.patch; do
-                [ -f "$p" ] || continue
-                echo "Applying patch from flake store: $p"
-                patch -p1 < "$p" || true
-              done
-            else
-              echo "No patch directory found at $PATCH_DIR; skipping patch application."
-            fi
- 
-            # 3) Targeted quick fixes: guard known Qt6-moved attributes in source (best-effort).
-            #    This small pass is just to handle the first blocking errors and is intentionally
-            #    conservative. More comprehensive source changes are applied via the explicit patches above.
-            if [ -f src/AppRuntime.cpp ]; then
-              echo " - guarding AppRuntime attribute use in src/AppRuntime.cpp (sed replacement)"
-              # If the file contains the problematic call, insert a Qt-version-guarded block.
-              # Be idempotent: only perform the replacement if the guard is not already present.
-              if ! grep -q "#if QT_VERSION < QT_VERSION_CHECK(6,0,0)" src/AppRuntime.cpp 2>/dev/null; then
-                if grep -q "AppRuntime::setAttribute(Qt::ApplicationAttribute::AA_DisableWindowContextHelpButton);" src/AppRuntime.cpp 2>/dev/null; then
-                  sed -i 's|AppRuntime::setAttribute(Qt::ApplicationAttribute::AA_DisableWindowContextHelpButton);|#if QT_VERSION < QT_VERSION_CHECK(6,0,0)\n    AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);\n#else\n    // Omitted on Qt6 (attribute not present in the same scope)\n#endif|' src/AppRuntime.cpp || true
-                fi
-                # Also handle the alternate Qt5 token variant if present
-                if grep -q "AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);" src/AppRuntime.cpp 2>/dev/null; then
-                  sed -i 's|AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);|#if QT_VERSION < QT_VERSION_CHECK(6,0,0)\n    AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);\n#else\n    // Omitted on Qt6 (attribute not present in the same scope)\n#endif|' src/AppRuntime.cpp || true
-                fi
-              fi
-            fi
- 
+            # patchPhase removed - we are editing the source directly under src/ for the Qt6 port.
+            # No automatic sed/patch operations performed here; source changes are committed into git.
             runHook postPatch
           '';
 

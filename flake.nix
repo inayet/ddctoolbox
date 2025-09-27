@@ -28,7 +28,7 @@
           Type=Application
           MimeType=application/x-ddc;
         '';
-        ddctoolbox-src = ./src;
+        ddctoolbox-src = ./.;
         ddctoolbox-qt6 = pkgs.stdenv.mkDerivation {
           pname = "ddctoolbox-qt6";
           version = "2024-09-26.2";
@@ -84,7 +84,7 @@
             export QT_SELECT=6
 
             # Invoke qmake and point it at the project's src qmake file when building from the `src/` source root.
-            qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 src.pro
+            qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 src/src.pro
 
             runHook postConfigure
           '';

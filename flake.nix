@@ -14,20 +14,20 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
-        desktopFile = pkgs.writeText "ddc_toolbox.desktop" ''
-          [Desktop Entry]
-          Name=DDC Toolbox
-          GenericName=DDC Editor
-          Comment=Create and edit DDCs on Linux
-          Keywords=editor;audio;ddc
-          Categories=AudioVideo;Audio;Editor;
-          Exec=ddctoolbox
-          Icon=ddc-toolbox
-          StartupNotify=false
-          Terminal=false
-          Type=Application
-          MimeType=application/x-ddc;
-        '';
+        # desktopFile = pkgs.writeText "ddc_toolbox.desktop" ''
+        #   [Desktop Entry]
+        #   Name=DDC Toolbox
+        #   GenericName=DDC Editor
+        #   Comment=Create and edit DDCs on Linux
+        #   Keywords=editor;audio;ddc
+        #   Categories=AudioVideo;Audio;Editor;
+        #   Exec=ddctoolbox
+        #   Icon=ddc-toolbox
+        #   StartupNotify=false
+        #   Terminal=false
+        #   Type=Application
+        #   MimeType=application/x-ddc;
+        # '';
         ddctoolbox-src = pkgs.fetchFromGitHub {
           owner = "timschneeb";
           repo = "DDCToolbox";
@@ -112,9 +112,9 @@
               exit 1
             fi
 
-            # Install desktop file
-            mkdir -p $out/share/applications
-            cp ${desktopFile} $out/share/applications/ddc_toolbox.desktop
+            # # Install desktop file
+            # mkdir -p $out/share/applications
+            # cp ${desktopFile} $out/share/applications/ddc_toolbox.desktop
 
             # Install icon if available
             mkdir -p $out/share/pixmaps
@@ -172,7 +172,7 @@
             # Development tools
           ];
           shellHook = ''
-            echo "Welcome to "${pkgs.git}/bin/git branch --show-current" git branch DDCToolbox development environment"
+            echo Welcome to "${pkgs.git}/bin/git branch --show-current" git branch DDCToolbox development environment
           '';
         };
       }

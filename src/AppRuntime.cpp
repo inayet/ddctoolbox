@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QFileOpenEvent>
 #include <QStyleFactory>
+#include <QtGlobal>
 
 #include <model/CurveFittingOptions.h>
 
@@ -24,6 +25,9 @@ AppRuntime::AppRuntime(int &argc, char **argv) : QApplication(argc, argv) {
 /* Only set this Qt5-specific attribute when building against Qt5.
    Qt6 reorganized application attribute enums and this symbol may not be
    present in the same scope; avoid compilation failures by guarding it. */
+/* Only set this Qt5-specific attribute when building against Qt5.
+   Qt6 reorganized application attributes and this symbol may not be
+   present in the same scope; guard to avoid compilation failures. */
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);
 #endif

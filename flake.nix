@@ -56,8 +56,8 @@
             qt6.qtbase
             qt6.qttools
             qt6.qt5compat
-            qt6.qtsvg
-            libGL
+            #qt6.qtsvg
+            #libGL
             #utf8cpp
             # Additional dependencies that might be needed
             pipewire

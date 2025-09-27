@@ -1,0 +1,14 @@
+*** Begin Patch
+*** Update File: src/AppRuntime.cpp
+@@
+-    AppRuntime::setAttribute(Qt::ApplicationAttribute::AA_DisableWindowContextHelpButton);
++/* Guard disabling of the context help button so that builds with Qt6 (where the attribute
++   may not be available in the same scope) do not fail. Only set the attribute for Qt5. */
++#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
++    // Qt5-compatible form
++    AppRuntime::setAttribute(Qt::AA_DisableWindowContextHelpButton);
++#else
++    // On Qt6 the attribute may not be present in the same namespace/scope.
++    // Skip setting it to preserve build compatibility.
++#endif
+*** End Patch

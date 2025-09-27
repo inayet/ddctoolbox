@@ -129,8 +129,8 @@
 
             # Install the desktop file provided by the flake and the icon to standard places
             mkdir -p $out/share/applications
-            if [ -n "${desktopFile-}" ]; then
-              cp -v ${desktopFile} $out/share/applications/ddc_toolbox.desktop || true
+            if [ -e "${desktopFile}" ]; then
+              cp -v "${desktopFile}" $out/share/applications/ddc_toolbox.desktop || true
             fi
 
             mkdir -p $out/share/pixmaps

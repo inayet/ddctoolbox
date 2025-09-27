@@ -83,8 +83,31 @@
             # Set up Qt environment (prefer Qt6)
             export QT_SELECT=6
 
-            # Invoke qmake and point it at the project's src qmake file when building from the `src/` source root.
-            qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 src/src.pro
+            # Choose the correct .pro file depending on how the source tree is laid out.
+            # This makes the configure step robust when building from:
+            # - a repository root (DDCToolbox.pro),
+            # - a repository that vendors the project files under src/ (src.pro), or
+            # - a source root that contains src/src.pro.
+            #
+            # We test for the files in that order and invoke qmake on the first match.
+            #
+            # Note: `qmake` is expected to be available in the build environment via the qmake wrapper/hook.
+            if [ -f "$PWD/DDCToolbox.pro" ]; then
+              echo "Using project file: $PWD/DDCToolbox.pro"
+              qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 "$PWD/DDCToolbox.pro"
+            elif [ -f "$PWD/src.pro" ]; then
+              echo "Using project file: $PWD/src.pro"
+              qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 "$PWD/src.pro"
+            elif [ -f "$PWD/src/src.pro" ]; then
+              echo "Using project file: $PWD/src/src.pro"
+              qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 "$PWD/src/src.pro"
+            else
+              echo "Error: could not find a .pro file to run qmake on. Searched:"
+              echo "  $PWD/DDCToolbox.pro"
+              echo "  $PWD/src.pro"
+              echo "  $PWD/src/src.pro"
+              exit 1
+            fi
 
             runHook postConfigure
           '';

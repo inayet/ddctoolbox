@@ -4,13 +4,15 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
-  outputs = inputs @ {
-    nixpkgs,
-    flake-utils,
-  }:
+  outputs =
+    inputs@{
+      nixpkgs,
+      flake-utils,
+    }:
     flake-utils.lib.eachDefaultSystem (
-      system: let
-        pkgs = import nixpkgs {inherit system;};
+      system:
+      let
+        pkgs = import nixpkgs { inherit system; };
         desktopFile = pkgs.writeText "ddc_toolbox.desktop" ''
           [Desktop Entry]
           Name=DDC Toolbox
@@ -166,11 +168,12 @@
               "timschneeb"
               "inayet"
             ];
-            platforms = with platforms.linux; ["x86_64-linux"];
+            platforms = with platforms.linux; [ "x86_64-linux" ];
             mainProgram = "ddctoolbox";
           };
         };
-      in {
+      in
+      {
         packages = {
           default = ddctoolbox;
           ddctoolbox = ddctoolbox;
@@ -178,11 +181,11 @@
 
         apps.default = {
           type = "app";
-          program = "${self.ddctoolbox}/bin/ddctoolbox";
+          program = "${ddctoolbox}/bin/ddctoolbox";
         };
 
         devShells.default = pkgs.mkShell {
-          inputsFrom = [ddctoolbox];
+          inputsFrom = [ ddctoolbox ];
           buildInputs = with pkgs; [
             # Development tools
             gdb
@@ -196,7 +199,7 @@
             utf8cpp
             pkg-config
           ];
-          package = ["${self.packages.default}"];
+          package = [ ddctoolbox ];
 
           shellHook = ''
             #echo "DDCToolbox development environment (Qt5)"

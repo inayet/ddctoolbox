@@ -45,14 +45,7 @@
             LC_ALL = "C.UTF-8";
           };
 
-          # Avoid automatic Qt wrapping checks during iterative port; allow configurePhase to call qmake explicitly.
-          dontWrapQtApps = true;
 
-          # Make qmakePrePhase a no-op so the configurePhase's explicit qmake invocation runs deterministically.
-          qmakePrePhase = ''
-            runHook preQmake
-            runHook postQmake
-          '';
  
           # Use the canonical qt6 qmake and wrap hook from nixpkgs and keep standard native tools.
           # This ensures qmake and the wrapHook are provided by the qt6 namespace (recommended pattern).

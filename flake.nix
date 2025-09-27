@@ -44,6 +44,8 @@
             LANG = "C.UTF-8";
             LC_ALL = "C.UTF-8";
           };
+          # Bypass automatic Qt wrapping checks during build; we'll handle wrapping later if needed.
+          dontWrapQtApps = true;
 
           # Use the qt6 namespace so the qmake/wrap hooks are wired correctly by nixpkgs,
           # and keep common native build tools.

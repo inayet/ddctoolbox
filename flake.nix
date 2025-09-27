@@ -83,21 +83,45 @@
           # Patch sources by applying committed .patch files located under the vendored upstream/ tree.
           # We apply patches from `upstream/patches/qt6-patches` so they match the upstream path layout
           # (patch files reference paths like a/src/..., and we run patch from the repository root).
+          # Patch sources: run our scripted Qt6 fixes first (if present), then apply committed .patch files
+          # from the repository's patches/qt6-patches directory. This ensures the helper script can make
+          # best-effort mechanical edits, and the explicit patch files are applied afterwards reproducibly.
           patchPhase = ''
             runHook prePatch
-            echo "Applying .patch files from upstream/patches/qt6-patches..."
+            echo "Running Qt6 helper script (if present) and applying .patch files from patches/qt6-patches..."
 
-            # Use the upstream/ path inside the source tree so patch hunks reference src/ paths correctly.
-            PATCH_DIR=${toString ./patches/qt6-patches}
+            # 1) Run the repository helper script (idempotent, best-effort).
+            if [ -x "${PWD}/patches/qt6-fix.sh" ]; then
+              echo "Executing helper: ${PWD}/patches/qt6-fix.sh"
+              (cd "$PWD" && ./patches/qt6-fix.sh) || true
+            else
+              echo "No helper script at ./patches/qt6-fix.sh (skipping)."
+            fi
+
+            # 2) Apply canonical patch files from the repo's patches/qt6-patches directory
+            PATCH_DIR="$PWD/patches/qt6-patches"
             if [ -d "$PATCH_DIR" ]; then
               for p in "$PATCH_DIR"/*.patch; do
                 [ -f "$p" ] || continue
                 echo "Applying patch: $p"
-                patch -p1 < "$p" || true
+                # Apply in repository root (strip one component to match a/... b/... diffs)
+                (cd "$PWD" && patch -p1 < "$p") || true
               done
             else
               echo "No patch directory found at $PATCH_DIR; skipping patch application."
             fi
+
+            # 3) Quick replacement pass for application attribute name mismatches (best-effort)
+            #    Replace common Qt::AA_* references with a more explicit ApplicationAttribute qualified form
+            #    so code that references attributes in a newer Qt layout compiles more easily.
+            echo "Performing quick attribute name replacements (Qt::AA_ -> Qt::ApplicationAttribute::AA_)"
+            # Only alter source files under src and 3rdparty code where present
+            for f in $(grep -R --line-number -E "Qt::AA_[A-Za-z0-9_]+" src 2>/dev/null | cut -d: -f1 | sort -u); do
+              echo " - patching $f"
+              sed -i 's/Qt::AA_DisableWindowContextHelpButton/Qt::ApplicationAttribute::AA_DisableWindowContextHelpButton/g' "$f" || true
+              sed -i 's/Qt::AA_EnableHighDpiScaling/Qt::ApplicationAttribute::AA_EnableHighDpiScaling/g' "$f" || true
+              sed -i 's/Qt::AA_/Qt::ApplicationAttribute::AA_/g' "$f" || true
+            done || true
 
             runHook postPatch
           '';

@@ -5,10 +5,13 @@
 #include <cassert>
 #include <utility>
 
+#include <QRandomGenerator>
 #include <QTableWidget>
 
 FrequencyPlot::FrequencyPlot(QFrame *frame) : QCustomPlot(frame) {
-  qsrand(QDateTime::currentMSecsSinceEpoch() / 1000);
+  // QRandomGenerator is used in Qt6 as replacement for qrand/qsrand.
+  // No explicit seeding is necessary — QRandomGenerator is seeded
+  // automatically.
 }
 
 void FrequencyPlot::setMode(PlotType type, QWidget *parent) {
@@ -124,14 +127,16 @@ void FrequencyPlot::updatePoints() {
   points->setLineStyle(QCPGraph::lsNone);
   points->setScatterStyle(QCPScatterStyle::ssDot);
   points->setPen(QPen(QBrush(Qt::darkRed), 3));
-  points->setName("points_" + QString::number(qrand()));
+  points->setName("points_" +
+                  QString::number(QRandomGenerator::global()->generate()));
   QCPGraph *sel_points = addGraph();
   sel_points->setAdaptiveSampling(false);
   sel_points->removeFromLegend();
   sel_points->setLineStyle(QCPGraph::lsNone);
   sel_points->setScatterStyle(QCPScatterStyle::ssDot);
   sel_points->setPen(QPen(QBrush(Qt::red), 3));
-  sel_points->setName("sel_points_" + QString::number(qrand()));
+  sel_points->setName("sel_points_" +
+                      QString::number(QRandomGenerator::global()->generate()));
 
   QCPItemTracer *tracer = new QCPItemTracer(this);
   tracer->setGraph(plot);

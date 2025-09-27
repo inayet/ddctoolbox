@@ -44,12 +44,17 @@
             LANG = "C.UTF-8";
             LC_ALL = "C.UTF-8";
           };
-          # Bypass automatic Qt wrapping checks during build; we'll handle wrapping later if needed.
-          dontWrapQtApps = true;
-
-          # Use the qt6 namespace so the qmake/wrap hooks are wired correctly by nixpkgs,
-          # and keep common native build tools.
-          nativeBuildInputs = (with pkgs.qt6; [ qmake wrapQtAppsHook ]) ++ (with pkgs; [ pkg-config utf8cpp gnumake ]);
+ 
+          # Use a robust set of Qt6 tools and wrapping hooks so qmake and runtime wrapping are provided.
+          nativeBuildInputs = [
+            pkgs.qt6.full
+            pkgs.qt6.qmake
+            pkgs.qt6.wrapQtAppsHook
+            pkgs.pkg-config
+            pkgs.utf8cpp
+            pkgs.gnumake
+            pkgs.kdePackages.qtsvg
+          ];
 
           # Include explicit qmake in buildInputs so we can invoke it deterministically in configurePhase,
           # and include the Qt6 runtimes/modules needed.

@@ -32,7 +32,7 @@
           owner = "timschneeb";
           repo = "DDCToolbox";
           rev = "master";
-          sha256 = "sha256-NqhSMfIAnpJcJ8qTSV61tbiCKoI+INfoknTl5/4g7h4=";
+          sha256 = "07i8ybkkkkrr4bashx7ywclk3ljvrpa0zlkgqrhgqn0idr60zjc4";
         };
         ddctoolbox = pkgs.stdenv.mkDerivation {
           pname = "ddctoolbox";
@@ -49,6 +49,8 @@
             pkgs.qt6.wrapQtAppsHook
             pkgs.pkg-configUpstream
             pkgs.utf8cpp
+            pkgs.qt6.qmake
+            pkgs.gnumake
 
           ];
 
@@ -101,10 +103,6 @@
 
             # Install the binary
             mkdir -p $out/bin
-
-            # Find and install the executable
-            find . -type f -name "DDCToolbox" -executable -exec cp {} $out/bin/ddctoolbox \;
-            find . -type f -name "ddctoolbox" -executable -exec cp {} $out/bin/ddctoolbox \;
 
             # Ensure we have an executable
             if [ ! -f "$out/bin/ddctoolbox" ]; then

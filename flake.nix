@@ -31,10 +31,11 @@
             LC_ALL = "en_US.UTF-8";
           };
 
-          # Use the qt5 namespace so the qmake/wrap hooks are wired correctly by nixpkgs.
-          nativeBuildInputs = (with pkgs.qt5; [ qmake wrapQtAppsHook ]) ++ (with pkgs; [ pkg-config gnumake automake autoconf ]);
+          # Do not rely on the qmake pre-hook. Keep only standard native build tools here.
+          nativeBuildInputs = with pkgs; [ pkg-config gnumake automake autoconf ];
 
           buildInputs = with pkgs; [
+            qt5.qmake
             qt5.qtbase
             qt5.qttools
             qt5.qtsvg
@@ -117,16 +118,13 @@
         devShells = {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
-              qt5.qmake
-              qt5.qtbase
-              libGL
               pkg-config
               gcc
               make
             ];
 
             shellHook = ''
-              echo "Entered DDCToolbox development shell (Qt5). Locale: $LANG"
+              echo "Entered DDCToolbox development shell. Locale: $LANG"
             '';
           };
         };

@@ -8,6 +8,7 @@
     {
       nixpkgs,
       flake-utils,
+      ...
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -187,17 +188,7 @@
         devShells.default = pkgs.mkShell {
           inputsFrom = [ ddctoolbox ];
           buildInputs = with pkgs; [
-            # Development tools
-            gdb
-            valgrind
-            qtcreator
-            # Qt5 development tools
-            qt5.qtbase
-            qt5.qttools
-            qt5.qtsvg
-            libGL
-            utf8cpp
-            pkg-config
+
           ];
           package = [ ddctoolbox ];
 

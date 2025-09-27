@@ -34,7 +34,7 @@
           rev = "master";
           sha256 = "sha256-NqhSMfIAnpJcJ8qTSV61tbiCKoI+INfoknTl5/4g7h4=";
         };
-        ddctoolbox = pkgs.stdenv.mkDerivation {
+        ddctoolbox-qt6 = pkgs.stdenv.mkDerivation {
           pname = "ddctoolbox-qt6";
           version = "2024-09-26.2";
           src = ddctoolbox-src;
@@ -157,13 +157,13 @@
       in
       {
         packages = {
-          default = ddctoolbox;
-          ddctoolbox = ddctoolbox;
+          default = ddctoolbox-qt6;
+          ddctoolbox = ddctoolbox-qt6;
         };
 
         apps.default = {
           type = "app";
-          program = "${ddctoolbox}/bin/ddctoolbox";
+          program = "${ddctoolbox-qt6}/bin/ddctoolbox";
         };
 
         devShells.default = pkgs.mkShell {

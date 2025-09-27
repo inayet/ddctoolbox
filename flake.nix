@@ -14,20 +14,20 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
-        # desktopFile = pkgs.writeText "ddc_toolbox.desktop" ''
-        #   [Desktop Entry]
-        #   Name=DDC Toolbox
-        #   GenericName=DDC Editor
-        #   Comment=Create and edit DDCs on Linux
-        #   Keywords=editor;audio;ddc
-        #   Categories=AudioVideo;Audio;Editor;
-        #   Exec=ddctoolbox
-        #   Icon=ddc-toolbox
-        #   StartupNotify=false
-        #   Terminal=false
-        #   Type=Application
-        #   MimeType=application/x-ddc;
-        # '';
+        desktopFile = pkgs.writeText "ddc_toolbox.desktop" ''
+          [Desktop Entry]
+          Name=DDC Toolbox
+          GenericName=DDC Editor
+          Comment=Create and edit DDCs on Linux
+          Keywords=editor;audio;ddc
+          Categories=AudioVideo;Audio;Editor;
+          Exec=ddctoolbox
+          Icon=ddc-toolbox
+          StartupNotify=false
+          Terminal=false
+          Type=Application
+          MimeType=application/x-ddc;
+        '';
         ddctoolbox-src = ./.;
         ddctoolbox-qt6 = pkgs.stdenv.mkDerivation {
           pname = "ddctoolbox-qt6";
@@ -39,17 +39,24 @@
             LANG = "C.UTF-8";
             LC_ALL = "C.UTF-8";
           };
-          # During iterative Qt6 porting we avoid the automatic wrap/unwrapping checks so
-          # the configure phase can call qmake explicitly against the repo working tree.
-          # This ensures the build uses the repository `src` (with our patches) and
-          # prevents the qmake pre-hook from failing due to missing helper binaries.
-          dontWrapQtApps = true;
+          # Enable standard Qt wrapping behavior so GUI apps are wrapped correctly.
+          # We intentionally do not set `dontWrapQtApps` here so the `wrapQtAppsHook`
+          # from nixpkgs (added below in nativeBuildInputs) can perform the proper
+          # wrapping for GUI applications.
 
-
- 
           # Use the canonical qt6 qmake and wrap hook from nixpkgs and keep standard native tools.
           # This ensures qmake and the wrapHook are provided by the qt6 namespace (recommended pattern).
-          nativeBuildInputs = (with pkgs.qt6; [ qmake wrapQtAppsHook ]) ++ [ pkgs.pkg-config pkgs.utf8cpp pkgs.gnumake pkgs.kdePackages.qtsvg ];
+          nativeBuildInputs =
+            (with pkgs.qt6; [
+              qmake
+              wrapQtAppsHook
+            ])
+            ++ [
+              pkgs.pkg-config
+              pkgs.utf8cpp
+              pkgs.gnumake
+              pkgs.kdePackages.qtsvg
+            ];
 
           # Include explicit qmake in buildInputs so we can invoke it deterministically in configurePhase,
           # and include the Qt6 runtimes/modules needed.
@@ -64,12 +71,9 @@
             pipewire
           ];
 
-          # No-op qmakePrePhase so the qmake hook won't run automatically; we call qmake explicitly in configurePhase.
-          qmakePrePhase = ''
-            runHook preQmake
-            # Intentionally no-op: prevent automatic qmake hook behavior so configurePhase can call qmake deterministically
-            runHook postQmake
-          '';
+          # Use the default qmake pre-phase behavior provided by the Qt hook from nixpkgs.
+          # We rely on the canonical qmake / wrapQtAppsHook combination to prepare the build
+          # environment for GUI wrapping and qmake invocation.
 
           # Patch sources by applying committed .patch files in the flake's patches/qt6-patches directory.
           # This is cleaner and reproducible: patch files are stored in the flake and applied reliably.
@@ -77,7 +81,10 @@
             runHook prePatch
             echo "Applying .patch files from flake (patches/qt6-patches)..."
 
-            PATCH_DIR=${toString ./patches/qt6-patches}
+            # Prefer patches kept in the source tree at ./patches/qt6-patches so they are
+            # applied reproducibly from the checked-out source. Use $PWD which points at the
+            # source root during patchPhase.
+            PATCH_DIR="$PWD/patches/qt6-patches"
             if [ -d "$PATCH_DIR" ]; then
               for p in "$PATCH_DIR"/*.patch; do
                 [ -f "$p" ] || continue
@@ -98,8 +105,9 @@
             # Set up Qt environment (prefer Qt6)
             export QT_SELECT=6
 
-            # Run qmake from the qt6 qmake wrapper to make the invocation deterministic
-            ${pkgs.qt6.qmake}/bin/qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 DDCToolbox.pro
+            # Invoke qmake via the qmake wrapper provided by the build environment so the
+            # wrapHook can set up environment correctly (canonical usage).
+            qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 DDCToolbox.pro
 
             runHook postConfigure
           '';
@@ -119,10 +127,27 @@
             # Install the binary
             mkdir -p $out/bin
 
+            # Install the desktop file provided by the flake and the icon to standard places
+            mkdir -p $out/share/applications
+            if [ -n "${desktopFile-}" ]; then
+              cp -v ${desktopFile} $out/share/applications/ddc_toolbox.desktop || true
+            fi
+
+            mkdir -p $out/share/pixmaps
+            if [ -f res/img/icon.png ]; then
+              cp -v res/img/icon.png $out/share/pixmaps/ddc-toolbox.png || true
+            fi
+
             # Install any additional resources
             if [ -d resources ]; then
               mkdir -p $out/share/ddctoolbox
               cp -r resources/* $out/share/ddctoolbox/
+            fi
+
+            # Optionally install other runtime assets (icons, qrc, html docs)
+            if [ -d res/html ]; then
+              mkdir -p $out/share/ddctoolbox/html
+              cp -r res/html/* $out/share/ddctoolbox/html/ || true
             fi
 
             runHook postInstall

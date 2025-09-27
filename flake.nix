@@ -39,7 +39,7 @@
 
         ddctoolbox = pkgs.stdenv.mkDerivation {
           pname = "ddctoolbox";
-          version = "unstable-2024-09-26";
+          version = "2024.09.26.1";
           src = ddctoolbox-src;
 
           # Fix locale issues during build
@@ -59,25 +59,27 @@
             qt5.qtsvg
             qt5.qtnetworkauth
             pipewire
+            qt5.qmake
+            gnumake
           ];
 
-          # Patch the source code to fix compilation issues
-          postPatch = ''
-            # Fix deprecated Qt5 APIs that were removed in Qt6
-            find . -name "*.cpp" -o -name "*.h" | xargs sed -i \
-              -e 's/AA_DisableWindowContextHelpButton/AA_DisableWindowContextHelpButton/g' \
-              -e 's/setFallbackSessionManagementEnabled/\/\/setFallbackSessionManagementEnabled/g'
+          # # Patch the source code to fix compilation issues
+          # postPatch = ''
+          #   # Fix deprecated Qt5 APIs that were removed in Qt6
+          #   find . -name "*.cpp" -o -name "*.h" | xargs sed -i \
+          #     -e 's/AA_DisableWindowContextHelpButton/AA_DisableWindowContextHelpButton/g' \
+          #     -e 's/setFallbackSessionManagementEnabled/\/\/setFallbackSessionManagementEnabled/g'
 
-            # The application attribute exists in Qt5, so we don't need to remove it
-            # Just comment out the problematic setFallbackSessionManagementEnabled call
-            sed -i 's/QGuiApplication::setFallbackSessionManagementEnabled(false);/\/\/QGuiApplication::setFallbackSessionManagementEnabled(false);/' src/VdcEditorWindow.cpp
+          #   # The application attribute exists in Qt5, so we don't need to remove it
+          #   # Just comment out the problematic setFallbackSessionManagementEnabled call
+          #   sed -i 's/QGuiApplication::setFallbackSessionManagementEnabled(false);/\/\/QGuiApplication::setFallbackSessionManagementEnabled(false);/' src/VdcEditorWindow.cpp
 
-            # Fix QCustomPlot Qt5 compatibility
-            # Replace deprecated qsrand/qrand with QRandomGenerator (if Qt 5.10+) or keep as is for older Qt5
-            find . -name "*.cpp" | xargs sed -i \
-              -e 's/qsrand(/\/\/qsrand(/g' \
-              -e 's/qrand()/QTime::currentTime().msec()/g'
-          '';
+          #   # Fix QCustomPlot Qt5 compatibility
+          #   # Replace deprecated qsrand/qrand with QRandomGenerator (if Qt 5.10+) or keep as is for older Qt5
+          #   find . -name "*.cpp" | xargs sed -i \
+          #     -e 's/qsrand(/\/\/qsrand(/g' \
+          #     -e 's/qrand()/QTime::currentTime().msec()/g'
+          # '';
 
           configurePhase = ''
             runHook preConfigure
@@ -105,10 +107,6 @@
 
             # Install the binary
             mkdir -p $out/bin
-
-            # Find and install the executable
-            find . -type f -name "DDCToolbox" -executable -exec cp {} $out/bin/ddctoolbox \;
-            find . -type f -name "ddctoolbox" -executable -exec cp {} $out/bin/ddctoolbox \;
 
             # Check if we found an executable
             if [ ! -f "$out/bin/ddctoolbox" ]; then
@@ -192,13 +190,7 @@
           ];
           package = [ ddctoolbox ];
 
-          shellHook = ''
-            #echo "DDCToolbox development environment (Qt5)"
-            #echo "Qt version: $(qmake -version)"
-            #export QT_SELECT=5
-            #export LANG=C.UTF-8
-            #export LC_ALL=C.UTF-8
-          '';
+          shellHook = '''';
         };
       }
     );

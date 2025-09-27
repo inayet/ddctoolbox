@@ -91,17 +91,16 @@
             echo "Running Qt6 helper script (if present) and applying .patch files from patches/qt6-patches..."
 
             # 1) Run the repository helper script (idempotent, best-effort).
-            # Use SOURCE_ROOT to refer to the build-time source root reliably (avoid referencing undefined PWD).
             SOURCE_ROOT="$PWD"
-            if [ -x "${SOURCE_ROOT}/patches/qt6-fix.sh" ]; then
-              echo "Executing helper: ${SOURCE_ROOT}/patches/qt6-fix.sh"
+            if [ -x "$SOURCE_ROOT/patches/qt6-fix.sh" ]; then
+              echo "Executing helper: $SOURCE_ROOT/patches/qt6-fix.sh"
               (cd "$SOURCE_ROOT" && ./patches/qt6-fix.sh) || true
             else
-              echo "No helper script at ${SOURCE_ROOT}/patches/qt6-fix.sh (skipping)."
+              echo "No helper script at $SOURCE_ROOT/patches/qt6-fix.sh (skipping)."
             fi
 
             # 2) Apply canonical patch files from the repo's patches/qt6-patches directory
-            PATCH_DIR="${SOURCE_ROOT}/patches/qt6-patches"
+            PATCH_DIR="$SOURCE_ROOT/patches/qt6-patches"
             if [ -d "$PATCH_DIR" ]; then
               for p in "$PATCH_DIR"/*.patch; do
                 [ -f "$p" ] || continue

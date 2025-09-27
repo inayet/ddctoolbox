@@ -28,7 +28,12 @@
           Type=Application
           MimeType=application/x-ddc;
         '';
-        ddctoolbox-src = ./.;
+        ddctoolbox-src = pkgs.fetchFromGitHub {
+          owner = "timschneeb";
+          repo = "DDCToolbox";
+          rev = "master";
+          sha256 = "sha256-NqhSMfIAnpJcJ8qTSV61tbiCKoI+INfoknTl5/4g7h4=";
+        };
         ddctoolbox-qt6 = pkgs.stdenv.mkDerivation {
           pname = "ddctoolbox-qt6";
           version = "2024-09-26.2";
@@ -83,13 +88,11 @@
             echo "Applying .patch files from upstream/patches/qt6-patches..."
 
             # Use the upstream/ path inside the source tree so patch hunks reference src/ paths correctly.
-            PATCH_DIR="$PWD/upstream/patches/qt6-patches"
+            PATCH_DIR=${toString ./patches/qt6-patches}
             if [ -d "$PATCH_DIR" ]; then
               for p in "$PATCH_DIR"/*.patch; do
                 [ -f "$p" ] || continue
                 echo "Applying patch: $p"
-                # Run patch from the repository root (which is $PWD during patchPhase).
-                # Use -p1 so diff headers like a/src/... become src/...
                 patch -p1 < "$p" || true
               done
             else
@@ -106,9 +109,8 @@
             # Set up Qt environment (prefer Qt6)
             export QT_SELECT=6
 
-            # Invoke qmake and explicitly point it at the upstream project's .pro file so
-            # the build operates on the vendored upstream sources present in upstream/.
-            qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 upstream/DDCToolbox.pro
+            # Invoke qmake and point it at the upstream project's .pro file at repository root.
+            qmake -r PREFIX=$out CONFIG+=release CONFIG+=c++17 DDCToolbox.pro
 
             runHook postConfigure
           '';

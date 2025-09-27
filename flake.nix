@@ -41,13 +41,14 @@
 
           # Fix locale issues during build
           env = {
-            LANG = "C-UTF-8";
-            LC_ALL = "C-UTF-8";
+            LANG = "UTF-8";
+            LC_ALL = "UTF-8";
           };
 
           nativeBuildInputs = [
             pkgs.qt6.wrapQtAppsHook
             pkgs.pkg-configUpstream
+            pkgs.utf8cpp
 
           ];
 

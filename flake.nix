@@ -46,9 +46,8 @@
           };
 
           nativeBuildInputs = [
-            pkgs.wrapQtAppsHook
-            pkgs.pkg-configUpstream
             pkgs.qt6.wrapQtAppsHook
+            pkgs.pkg-configUpstream
             pkgs.qt6.qtdeclarative
             pkgs.qt6.qttools
             pkgs.qt6.make

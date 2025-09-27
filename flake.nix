@@ -45,8 +45,9 @@
             LC_ALL = "C.UTF-8";
           };
 
-          # Keep only standard native build tools here; call qmake explicitly from buildInputs
-          nativeBuildInputs = with pkgs; [ pkg-config utf8cpp gnumake ];
+          # Use the qt6 namespace so the qmake/wrap hooks are wired correctly by nixpkgs,
+          # and keep common native build tools.
+          nativeBuildInputs = (with pkgs.qt6; [ qmake wrapQtAppsHook ]) ++ (with pkgs; [ pkg-config utf8cpp gnumake ]);
 
           # Include explicit qmake in buildInputs so we can invoke it deterministically in configurePhase,
           # and include the Qt6 runtimes/modules needed.

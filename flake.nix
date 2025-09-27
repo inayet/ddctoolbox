@@ -52,7 +52,7 @@
           ];
 
           buildInputs = with pkgs; [
-            qt6
+            #qt6
             qt6.qtbase
             qt6.qttools
             qt6.qt5compat

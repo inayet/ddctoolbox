@@ -46,7 +46,18 @@
 
           # Use the canonical qt6 qmake and wrap hook from nixpkgs and keep standard native tools.
           # This ensures qmake and the wrapHook are provided by the qt6 namespace (recommended pattern).
-          nativeBuildInputs = (with pkgs.qt6; [ qmake wrapQtAppsHook ]) ++ [ pkgs.pkg-config pkgs.utf8cpp pkgs.perl pkgs.gnumake pkgs.kdePackages.qtsvg ];
+          nativeBuildInputs =
+            (with pkgs.qt6; [
+              qmake
+              wrapQtAppsHook
+            ])
+            ++ [
+              pkgs.pkg-config
+              pkgs.utf8cpp
+              pkgs.perl
+              pkgs.gnumake
+              pkgs.kdePackages.qtsvg
+            ];
 
           # Include explicit qmake in buildInputs so we can invoke it deterministically in configurePhase,
           # and include the Qt6 runtimes/modules needed.
